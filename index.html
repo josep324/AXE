@@ -5,284 +5,475 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AXE Rewards</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: #050506;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    padding: 20px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:#050506; display:flex; justify-content:center; align-items:center;
+    min-height:100vh; padding:20px; overflow-x:hidden;
   }
   .phone {
-    width: 360px;
-    background: #0E0E10;
-    border-radius: 32px;
-    padding: 14px;
-    border: 1px solid #29292d;
-    box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+    width:360px; background:#0E0E10; border-radius:34px; padding:14px;
+    border:1px solid #29292d; box-shadow:0 30px 80px rgba(0,0,0,.6); position:relative;
   }
   .screen {
-    background: #18181B;
-    border-radius: 22px;
-    overflow: hidden;
+    background:#18181B; border-radius:24px; overflow:hidden; position:relative;
+    height:660px; display:flex; flex-direction:column;
   }
+  .scroll { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  .scroll::-webkit-scrollbar { width:0; }
+
+  /* toast */
   .toast {
-    position: fixed;
-    top: 30px;
-    left: 50%;
-    transform: translateX(-50%) translateY(-120px);
-    background: #D85A30;
-    color: #fff;
-    padding: 12px 22px;
-    border-radius: 30px;
-    font-size: 14px;
-    font-weight: 600;
-    opacity: 0;
-    transition: all .35s cubic-bezier(.3,1.3,.5,1);
-    z-index: 50;
-    box-shadow: 0 8px 30px rgba(216,90,48,.5);
+    position:absolute; top:18px; left:50%; transform:translateX(-50%) translateY(-120px);
+    background:#D85A30; color:#fff; padding:11px 20px; border-radius:30px; font-size:13.5px;
+    font-weight:600; opacity:0; transition:all .35s cubic-bezier(.3,1.3,.5,1); z-index:60;
+    box-shadow:0 8px 30px rgba(216,90,48,.5); white-space:nowrap;
   }
-  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
 
-  .header { padding: 18px 20px 14px; display: flex; align-items: center; justify-content: space-between; }
-  .brand-tag { font-size: 11px; letter-spacing: 2.5px; color: #D85A30; font-weight: 700; }
-  .brand-name { font-size: 19px; color: #fff; font-weight: 600; margin-top: 2px; }
-  .points-pill {
-    display: flex; align-items: center; gap: 7px;
-    background: #D85A30; padding: 7px 14px; border-radius: 22px;
+  /* confetti */
+  .confetti { position:absolute; width:8px; height:8px; z-index:55; pointer-events:none; }
+
+  /* header */
+  .header { padding:18px 20px 12px; display:flex; align-items:center; justify-content:space-between; }
+  .brand-tag { font-size:11px; letter-spacing:2.5px; color:#D85A30; font-weight:700; }
+  .brand-name { font-size:19px; color:#fff; font-weight:600; margin-top:2px; }
+  .head-right { display:flex; align-items:center; gap:8px; }
+  .streak-pill, .points-pill {
+    display:flex; align-items:center; gap:6px; padding:7px 12px; border-radius:22px;
   }
-  .points-pill svg { width: 16px; height: 16px; fill: #fff; }
-  .points-val { font-size: 15px; color: #fff; font-weight: 700; }
+  .streak-pill { background:#232327; }
+  .streak-pill svg { width:15px; height:15px; fill:#F0997B; }
+  .streak-pill span { font-size:13px; color:#fff; font-weight:700; }
+  .points-pill { background:#D85A30; }
+  .points-pill svg { width:15px; height:15px; fill:#fff; }
+  .points-val { font-size:14px; color:#fff; font-weight:700; }
 
-  .profile { padding: 0 20px 18px; }
-  .profile-card { background: #232327; border-radius: 16px; padding: 15px; }
-  .profile-top { display: flex; align-items: center; gap: 11px; margin-bottom: 11px; }
-  .avatar {
-    width: 38px; height: 38px; border-radius: 50%; background: #D85A30;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .avatar svg { width: 20px; height: 20px; fill: #fff; }
-  .profile-name { font-size: 14px; color: #fff; font-weight: 600; }
-  .profile-lvl { font-size: 11px; color: #9A9A9E; margin-top: 1px; }
-  .to-next { margin-left: auto; font-size: 11px; color: #9A9A9E; text-align: right; }
-  .bar { height: 7px; background: #38383D; border-radius: 5px; overflow: hidden; }
-  .bar-fill { height: 100%; background: #D85A30; border-radius: 5px; transition: width .6s cubic-bezier(.3,1,.4,1); }
+  /* profile card */
+  .pad { padding:0 20px; }
+  .profile-card { background:#232327; border-radius:16px; padding:15px; margin-bottom:6px; }
+  .profile-top { display:flex; align-items:center; gap:11px; margin-bottom:11px; }
+  .avatar { width:38px; height:38px; border-radius:50%; background:#D85A30; display:flex; align-items:center; justify-content:center; }
+  .avatar svg { width:20px; height:20px; fill:#fff; }
+  .profile-name { font-size:14px; color:#fff; font-weight:600; }
+  .profile-lvl { font-size:11px; color:#9A9A9E; margin-top:1px; }
+  .to-next { margin-left:auto; font-size:11px; color:#9A9A9E; text-align:right; }
+  .bar { height:7px; background:#38383D; border-radius:5px; overflow:hidden; }
+  .bar-fill { height:100%; background:#D85A30; border-radius:5px; transition:width .7s cubic-bezier(.3,1,.4,1); }
 
-  .section-label { padding: 6px 20px 10px; display: flex; align-items: center; gap: 8px; }
-  .section-label svg { width: 15px; height: 15px; fill: #D85A30; }
-  .section-label .txt { font-size: 12.5px; color: #fff; font-weight: 600; }
-  .section-label .hint { margin-left: auto; font-size: 10px; color: #9A9A9E; }
+  /* section labels */
+  .section-label { padding:16px 20px 10px; display:flex; align-items:center; gap:8px; }
+  .section-label svg { width:15px; height:15px; fill:#D85A30; }
+  .section-label .txt { font-size:12.5px; color:#fff; font-weight:600; }
+  .section-label .hint { margin-left:auto; font-size:10px; color:#9A9A9E; }
 
-  .list { padding: 0 20px; }
+  /* challenges */
   .challenge {
-    background: #232327; border-radius: 13px; padding: 13px 15px;
-    margin-bottom: 10px; display: flex; align-items: center; gap: 12px;
-    transition: opacity .3s, transform .3s;
+    background:#232327; border-radius:13px; padding:13px 15px; margin-bottom:10px;
+    display:flex; align-items:center; gap:12px; transition:opacity .3s, transform .35s;
   }
-  .challenge .c-icon { width: 22px; height: 22px; fill: #F0997B; flex-shrink: 0; }
-  .challenge .c-body { flex: 1; }
-  .challenge .c-title { font-size: 12.5px; color: #fff; line-height: 1.3; }
-  .challenge .c-pts { font-size: 10.5px; color: #9A9A9E; margin-top: 3px; }
-  .do-btn {
-    font-size: 11px; color: #D85A30; border: 1px solid #D85A30;
-    background: transparent; padding: 6px 13px; border-radius: 14px;
-    cursor: pointer; font-weight: 600; flex-shrink: 0; transition: all .2s;
-  }
-  .do-btn:hover { background: #D85A30; color: #fff; }
-  .done-mark { width: 22px; height: 22px; fill: #1D9E75; flex-shrink: 0; }
-  .challenge.completed { opacity: .55; }
+  .challenge.enter { opacity:0; transform:translateY(12px); }
+  .challenge .c-icon { width:22px; height:22px; fill:#F0997B; flex-shrink:0; }
+  .challenge .c-body { flex:1; }
+  .challenge .c-title { font-size:12.5px; color:#fff; line-height:1.3; }
+  .challenge .c-pts { font-size:10.5px; color:#9A9A9E; margin-top:3px; }
+  .tag-social { display:inline-block; font-size:9px; color:#F0997B; border:1px solid #5a3324; border-radius:10px; padding:1px 7px; margin-left:6px; vertical-align:middle; }
+  .do-btn { font-size:11px; color:#D85A30; border:1px solid #D85A30; background:transparent; padding:6px 13px; border-radius:14px; cursor:pointer; font-weight:600; flex-shrink:0; transition:all .2s; }
+  .do-btn:hover { background:#D85A30; color:#fff; }
+  .done-mark { width:22px; height:22px; fill:#1D9E75; flex-shrink:0; }
+  .challenge.completed { opacity:.5; }
 
-  .rewards-grid { padding: 0 20px 18px; display: flex; gap: 10px; }
-  .reward {
-    flex: 1; background: #232327; border-radius: 13px; padding: 13px 8px;
-    text-align: center; cursor: pointer; transition: all .2s; border: 1px solid transparent;
-  }
-  .reward:hover { border-color: #D85A30; transform: translateY(-2px); }
-  .reward svg { width: 24px; height: 24px; fill: #fff; }
-  .reward .r-title { font-size: 11px; color: #fff; margin: 8px 0 2px; line-height: 1.25; }
-  .reward .r-cost { font-size: 10px; color: #D85A30; font-weight: 600; }
-  .reward.locked { opacity: .4; cursor: not-allowed; }
-  .reward.locked:hover { border-color: transparent; transform: none; }
+  /* rewards */
+  .rewards-grid { display:flex; gap:10px; flex-wrap:wrap; }
+  .reward { flex:1 1 30%; min-width:90px; background:#232327; border-radius:13px; padding:14px 8px; text-align:center; cursor:pointer; transition:all .2s; border:1px solid transparent; }
+  .reward:hover { border-color:#D85A30; transform:translateY(-2px); }
+  .reward svg { width:24px; height:24px; fill:#fff; }
+  .reward .r-title { font-size:11px; color:#fff; margin:8px 0 2px; line-height:1.25; }
+  .reward .r-cost { font-size:10px; color:#D85A30; font-weight:600; }
+  .reward.locked { opacity:.4; cursor:not-allowed; }
+  .reward.locked:hover { border-color:transparent; transform:none; }
+  .reward.owned { border-color:#1D9E75; }
+  .reward.owned .r-cost { color:#1D9E75; }
 
-  .nav { background: #0E0E10; padding: 13px 0; display: flex; justify-content: space-around; }
-  .nav svg { width: 23px; height: 23px; fill: #6A6A6E; }
-  .nav svg.active { fill: #D85A30; }
+  /* history */
+  .hist-item { display:flex; align-items:center; gap:10px; padding:11px 0; border-bottom:1px solid #232327; }
+  .hist-item svg { width:18px; height:18px; fill:#1D9E75; }
+  .hist-item .h-txt { font-size:12.5px; color:#fff; flex:1; }
+  .hist-item .h-cost { font-size:11px; color:#9A9A9E; }
+  .empty { font-size:12px; color:#6A6A6E; text-align:center; padding:24px 0; }
 
-  .reset {
-    margin: 14px auto 0; display: block; background: transparent; border: none;
-    color: #555; font-size: 11px; cursor: pointer; text-decoration: underline;
-  }
+  /* stat cards */
+  .stats { display:flex; gap:10px; }
+  .stat { flex:1; background:#232327; border-radius:13px; padding:14px 10px; text-align:center; }
+  .stat .s-val { font-size:20px; color:#fff; font-weight:700; }
+  .stat .s-lbl { font-size:10px; color:#9A9A9E; margin-top:3px; }
+
+  /* nav */
+  .nav { background:#0E0E10; padding:12px 0 14px; display:flex; justify-content:space-around; flex-shrink:0; }
+  .nav button { background:none; border:none; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .nav svg { width:22px; height:22px; fill:#6A6A6E; transition:fill .2s; }
+  .nav .lbl { font-size:9px; color:#6A6A6E; transition:color .2s; }
+  .nav button.active svg { fill:#D85A30; }
+  .nav button.active .lbl { color:#D85A30; }
+
+  /* onboarding overlay */
+  .overlay { position:absolute; inset:0; background:#0E0E10; z-index:70; display:flex; flex-direction:column; padding:30px 24px; }
+  .ob-tag { font-size:11px; letter-spacing:2.5px; color:#D85A30; font-weight:700; }
+  .ob-title { font-size:22px; color:#fff; font-weight:600; margin-top:8px; line-height:1.3; }
+  .ob-sub { font-size:13px; color:#9A9A9E; margin-top:10px; line-height:1.5; }
+  .ob-opts { margin-top:26px; display:flex; flex-direction:column; gap:11px; }
+  .ob-opt { background:#232327; border:1px solid #2f2f33; border-radius:14px; padding:15px 16px; display:flex; align-items:center; gap:13px; cursor:pointer; transition:all .2s; }
+  .ob-opt:hover { border-color:#D85A30; }
+  .ob-opt svg { width:24px; height:24px; fill:#F0997B; }
+  .ob-opt .o-txt { font-size:14px; color:#fff; font-weight:500; }
+  .ob-opt .o-sub { font-size:11px; color:#9A9A9E; margin-top:2px; }
+  .ob-ai { margin-top:auto; display:flex; align-items:center; gap:8px; font-size:11px; color:#6A6A6E; }
+  .ob-ai svg { width:14px; height:14px; fill:#D85A30; }
+  .ai-loading { position:absolute; inset:0; background:#0E0E10; z-index:71; display:none; flex-direction:column; align-items:center; justify-content:center; gap:18px; }
+  .ai-loading.show { display:flex; }
+  .spinner { width:40px; height:40px; border:3px solid #232327; border-top-color:#D85A30; border-radius:50%; animation:spin .8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .ai-loading .al-txt { font-size:13px; color:#fff; font-weight:500; }
+  .ai-loading .al-sub { font-size:11px; color:#9A9A9E; }
+
+  .reset { margin:14px auto 0; display:block; background:transparent; border:none; color:#555; font-size:11px; cursor:pointer; text-decoration:underline; }
 </style>
 </head>
 <body>
 
-<div class="toast" id="toast"></div>
-
 <div class="phone">
   <div class="screen">
+    <div class="toast" id="toast"></div>
 
+    <!-- ONBOARDING -->
+    <div class="overlay" id="onboarding">
+      <div class="ob-tag">AXE REWARDS</div>
+      <div class="ob-title">What's your vibe?</div>
+      <div class="ob-sub">Pick what you're into and our AI builds your weekly challenges around it.</div>
+      <div class="ob-opts">
+        <div class="ob-opt" data-vibe="music">
+          <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          <div><div class="o-txt">Music & nightlife</div><div class="o-sub">DJs, drops, artist content</div></div>
+        </div>
+        <div class="ob-opt" data-vibe="sport">
+          <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 3 2.5 2L13 10l3 1 1 3-3 1 1 3-3-1-3 1 1-3-3-1 1-3 3-1z"/></svg>
+          <div><div class="o-txt">Sport & energy</div><div class="o-sub">Gym, matches, athletes</div></div>
+        </div>
+        <div class="ob-opt" data-vibe="style">
+          <svg viewBox="0 0 24 24"><path d="M16 2 12 6 8 2 3 7l4 3v12h10V10l4-3z"/></svg>
+          <div><div class="o-txt">Style & going out</div><div class="o-sub">Looks, filters, events</div></div>
+        </div>
+      </div>
+      <div class="ob-ai">
+        <svg viewBox="0 0 24 24"><path d="M12 2l2.4 5.4 5.6.5-4.2 3.7 1.3 5.4L12 19.8 6.9 22.4 8.2 17 4 13.3l5.6-.5z"/></svg>
+        Challenges personalized by AI
+      </div>
+    </div>
+
+    <div class="ai-loading" id="aiLoading">
+      <div class="spinner"></div>
+      <div class="al-txt">Building your challenges…</div>
+      <div class="al-sub" id="alSub">Analyzing your vibe</div>
+    </div>
+
+    <!-- HEADER (shared) -->
     <div class="header">
       <div>
         <div class="brand-tag">AXE</div>
         <div class="brand-name">Rewards</div>
       </div>
-      <div class="points-pill">
-        <svg viewBox="0 0 24 24"><path d="M12 2c1 3-1 5-2 7-1 2 0 4 2 4s3-2 2-4c2 1 4 4 4 7a8 8 0 1 1-16 0c0-4 3-7 4-10 1 2 2 3 2 6 1-3 0-6-2-10z"/></svg>
-        <span class="points-val" id="points">2480</span>
-      </div>
-    </div>
-
-    <div class="profile">
-      <div class="profile-card">
-        <div class="profile-top">
-          <div class="avatar"><svg viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6z"/></svg></div>
-          <div>
-            <div class="profile-name">Hi, Marc</div>
-            <div class="profile-lvl" id="lvl-label">Level 4 · Icon</div>
-          </div>
-          <div class="to-next"><span id="to-next">520</span> to next level</div>
+      <div class="head-right">
+        <div class="streak-pill">
+          <svg viewBox="0 0 24 24"><path d="M12 2c1 3-1 5-2 7-1 2 0 4 2 4s3-2 2-4c2 1 4 4 4 7a8 8 0 1 1-16 0c0-4 3-7 4-10 1 2 2 3 2 6 1-3 0-6-2-10z"/></svg>
+          <span id="streak">6</span>
         </div>
-        <div class="bar"><div class="bar-fill" id="bar" style="width:72%"></div></div>
+        <div class="points-pill">
+          <svg viewBox="0 0 24 24"><path d="M12 2l2.4 5.4 5.6.5-4.2 3.7 1.3 5.4L12 19.8 6.9 22.4 8.2 17 4 13.3l5.6-.5z"/></svg>
+          <span class="points-val" id="points">2480</span>
+        </div>
       </div>
     </div>
 
-    <div class="section-label">
-      <svg viewBox="0 0 24 24"><path d="M12 2l2.4 5.4 5.6.5-4.2 3.7 1.3 5.4L12 19.8 6.9 22.4 8.2 17 4 13.3l5.6-.5z"/></svg>
-      <span class="txt">Your challenges this week</span>
-      <span class="hint">picked by AI</span>
+    <!-- SCROLL AREA -->
+    <div class="scroll" id="scroll"></div>
+
+    <!-- NAV -->
+    <div class="nav" id="nav">
+      <button class="active" data-tab="home"><svg viewBox="0 0 24 24"><path d="M12 3 2 12h3v8h5v-5h4v5h5v-8h3z"/></svg><span class="lbl">Home</span></button>
+      <button data-tab="challenges"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 5.4 5.6.5-4.2 3.7 1.3 5.4L12 19.8 6.9 22.4 8.2 17 4 13.3l5.6-.5z"/></svg><span class="lbl">Challenges</span></button>
+      <button data-tab="rewards"><svg viewBox="0 0 24 24"><path d="M20 7h-3.2A3 3 0 0 0 12 3a3 3 0 0 0-4.8 4H4v4h16zM4 13v7h7v-7zm9 0v7h7v-7z"/></svg><span class="lbl">Rewards</span></button>
+      <button data-tab="profile"><svg viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6z"/></svg><span class="lbl">Profile</span></button>
     </div>
-
-    <div class="list" id="challenges"></div>
-
-    <div class="section-label">
-      <svg viewBox="0 0 24 24"><path d="M20 7h-3.2A3 3 0 0 0 12 3a3 3 0 0 0-4.8 4H4v4h16zM4 13v7h7v-7zm9 0v7h7v-7z"/></svg>
-      <span class="txt">Redeem your points</span>
-    </div>
-
-    <div class="rewards-grid" id="rewards"></div>
-
-    <div class="nav">
-      <svg class="active" viewBox="0 0 24 24"><path d="M12 3 2 12h3v8h5v-5h4v5h5v-8h3z"/></svg>
-      <svg viewBox="0 0 24 24"><path d="M18 2H6v2H3v3a4 4 0 0 0 4 4 5 5 0 0 0 4 2.9V18H8v2h8v-2h-3v-4.1A5 5 0 0 0 17 11a4 4 0 0 0 4-4V4h-3zM5 7V6h1v3a2 2 0 0 1-1-2zm14 0a2 2 0 0 1-1 2V6h1z"/></svg>
-      <svg viewBox="0 0 24 24"><path d="M20 7h-3.2A3 3 0 0 0 12 3a3 3 0 0 0-4.8 4H4v4h16zM4 13v7h7v-7zm9 0v7h7v-7z"/></svg>
-      <svg viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6z"/></svg>
-    </div>
-
   </div>
-  <button class="reset" onclick="resetApp()">Reset demo</button>
+  <button class="reset" onclick="location.reload()">Reset demo</button>
 </div>
 
 <script>
-  const ICONS = {
-    music: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
-    camera: '<path d="M9 3 7.2 5H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.2L15 3zm3 5a5 5 0 1 1 0 10 5 5 0 0 1 0-10z"/>',
-    pin: '<path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/>',
-    check: '<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-1.2 14.2-4-4 1.4-1.4 2.6 2.6 5.6-5.6 1.4 1.4z"/>',
-    ticket: '<path d="M20 7h-3.2A3 3 0 0 0 12 3a3 3 0 0 0-4.8 4H4v4h16zM4 13v7h7v-7zm9 0v7h7v-7z"/>',
-    spray: '<path d="M9 2h2v3H9zM7 6h6v3H7zm-1 4h8v12H6zm2 3v6h4v-6z"/>',
-    headphones: '<path d="M12 3a9 9 0 0 0-9 9v6a3 3 0 0 0 3 3h2v-7H5v-2a7 7 0 0 1 14 0v2h-3v7h2a3 3 0 0 0 3-3v-6a9 9 0 0 0-9-9z"/>'
-  };
-  const svg = k => '<svg class="c-icon" viewBox="0 0 24 24">'+ICONS[k]+'</svg>';
+const ICONS = {
+  music:'<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+  camera:'<path d="M9 3 7.2 5H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.2L15 3zm3 5a5 5 0 1 1 0 10 5 5 0 0 1 0-10z"/>',
+  pin:'<path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/>',
+  check:'<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-1.2 14.2-4-4 1.4-1.4 2.6 2.6 5.6-5.6 1.4 1.4z"/>',
+  ticket:'<path d="M20 7h-3.2A3 3 0 0 0 12 3a3 3 0 0 0-4.8 4H4v4h16zM4 13v7h7v-7zm9 0v7h7v-7z"/>',
+  spray:'<path d="M9 2h2v3H9zM7 6h6v3H7zm-1 4h8v12H6zm2 3v6h4v-6z"/>',
+  headphones:'<path d="M12 3a9 9 0 0 0-9 9v6a3 3 0 0 0 3 3h2v-7H5v-2a7 7 0 0 1 14 0v2h-3v7h2a3 3 0 0 0 3-3v-6a9 9 0 0 0-9-9z"/>',
+  friends:'<path d="M9 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm7 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3.3 3.1-5 7-5s7 1.7 7 5v1H2zm15.5-5c2.5.3 4.5 1.7 4.5 4v1h-4v-1c0-1.6-.6-2.9-1.6-3.8z"/>'
+};
+const svgC = k => '<svg class="c-icon" viewBox="0 0 24 24">'+ICONS[k]+'</svg>';
 
-  // --- gamification config ---
-  const LEVEL_SIZE = 1000;        // points per level
-  const START_LEVEL_BASE = 4000;  // level 4 starts here
+const LEVEL_SIZE = 1000;
 
-  let challenges = [
-    { id:1, icon:'music',  title:'Listen to the Bizarrap x AXE playlist', pts:150, done:true },
-    { id:2, icon:'camera', title:'Share your look with the AXE filter',   pts:200, done:false },
-    { id:3, icon:'pin',    title:'Check in at the Barcelona pop-up',        pts:300, done:false }
+/* AI-generated challenge pools per vibe */
+const POOLS = {
+  music: [
+    {icon:'music', title:'Listen to the Bizarrap x AXE playlist', pts:150},
+    {icon:'pin',   title:'Check in at the Barcelona pop-up with a DJ set', pts:300},
+    {icon:'camera',title:'Post a story from the AXE x music event', pts:200},
+    {icon:'headphones', title:'Unlock an exclusive track preview', pts:120},
+    {icon:'friends', title:'Invite a friend to the next AXE night', pts:250, social:true}
+  ],
+  sport: [
+    {icon:'music', title:'Log a gym session with the AXE soundtrack', pts:150},
+    {icon:'pin',   title:'Check in at the AXE x sport pop-up', pts:300},
+    {icon:'camera',title:'Share your post-workout look with the AXE filter', pts:200},
+    {icon:'headphones', title:'Watch the athlete behind-the-scenes drop', pts:120},
+    {icon:'friends', title:'Challenge a friend to beat your streak', pts:250, social:true}
+  ],
+  style: [
+    {icon:'camera',title:'Share your look with the AXE filter', pts:200},
+    {icon:'pin',   title:'Check in at the Barcelona pop-up', pts:300},
+    {icon:'music', title:'Add the AXE drop to your going-out playlist', pts:150},
+    {icon:'headphones', title:'Unlock the limited-edition reveal', pts:120},
+    {icon:'friends', title:'Invite a friend, you both earn points', pts:250, social:true}
+  ]
+};
+
+const REWARDS = [
+  {id:'vip',     icon:'ticket',     title:'VIP event access',     cost:3000},
+  {id:'pack',    icon:'spray',      title:'Limited edition pack',  cost:1800},
+  {id:'content', icon:'headphones', title:'Exclusive content',     cost:1200}
+];
+
+let state = {
+  points: 2480, streak: 6, vibe: 'music',
+  challenges: [], poolIdx: 0,
+  redeemed: [], history: [], completedCount: 1, tab: 'home'
+};
+
+/* ---------- toast + animations ---------- */
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove('show'),2200);
+}
+function animateCount(el, from, to){
+  const dur = 600, t0 = performance.now();
+  function step(now){
+    const p = Math.min((now-t0)/dur, 1);
+    const v = Math.round(from + (to-from)*(1-Math.pow(1-p,3)));
+    el.textContent = v.toLocaleString('en-US');
+    if(p<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+function confetti(){
+  const screen = document.querySelector('.screen');
+  const colors = ['#D85A30','#F0997B','#fff','#FAC775'];
+  for(let i=0;i<40;i++){
+    const c = document.createElement('div');
+    c.className='confetti';
+    c.style.background = colors[i%colors.length];
+    c.style.left = (40+Math.random()*280)+'px';
+    c.style.top = '60px';
+    c.style.borderRadius = Math.random()>.5?'50%':'1px';
+    screen.appendChild(c);
+    const dx = (Math.random()-.5)*260, dy = 300+Math.random()*260, rot = Math.random()*720;
+    c.animate([
+      {transform:'translate(0,0) rotate(0)', opacity:1},
+      {transform:`translate(${dx}px,${dy}px) rotate(${rot}deg)`, opacity:0}
+    ], {duration:1100+Math.random()*500, easing:'cubic-bezier(.2,.6,.4,1)'}).onfinish=()=>c.remove();
+  }
+}
+
+/* ---------- level helpers ---------- */
+const level = () => Math.floor(state.points/LEVEL_SIZE);
+const progressPct = () => Math.round((state.points%LEVEL_SIZE)/LEVEL_SIZE*100);
+const toNext = () => LEVEL_SIZE-(state.points%LEVEL_SIZE);
+
+/* ---------- onboarding ---------- */
+function pickVibe(vibe){
+  state.vibe = vibe;
+  document.getElementById('onboarding').style.display='none';
+  const load = document.getElementById('aiLoading');
+  load.classList.add('show');
+  const subs = ['Analyzing your vibe','Matching events near you','Personalizing rewards','Almost ready'];
+  let i=0; const sub=document.getElementById('alSub');
+  const iv=setInterval(()=>{ i++; if(subs[i]) sub.textContent=subs[i]; },480);
+  setTimeout(()=>{
+    clearInterval(iv); load.classList.remove('show');
+    seedChallenges(); render(); toast('Your challenges are ready');
+  },2100);
+}
+function seedChallenges(){
+  const pool = POOLS[state.vibe];
+  state.challenges = [
+    {...pool[0], id:1, done:true},
+    {...pool[1], id:2, done:false},
+    {...pool[2], id:3, done:false}
   ];
-  const REWARDS = [
-    { id:'vip',     icon:'ticket',     title:'VIP event access',   cost:3000 },
-    { id:'pack',    icon:'spray',      title:'Limited edition pack', cost:1800 },
-    { id:'content', icon:'headphones', title:'Exclusive content',    cost:1200 }
-  ];
+  state.poolIdx = 3;
+}
+function nextChallenge(){
+  const pool = POOLS[state.vibe];
+  const c = pool[state.poolIdx % pool.length];
+  state.poolIdx++;
+  return {...c, id:Date.now(), done:false, fresh:true};
+}
 
-  let points = 2480;
-  const redeemed = new Set();
-
-  function level() { return Math.floor(points / LEVEL_SIZE); }
-  function progressPct() { return Math.round((points % LEVEL_SIZE) / LEVEL_SIZE * 100); }
-  function toNext() { return LEVEL_SIZE - (points % LEVEL_SIZE); }
-
-  function toast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    clearTimeout(t._h);
-    t._h = setTimeout(() => t.classList.remove('show'), 2200);
-  }
-
-  function render() {
-    document.getElementById('points').textContent = points.toLocaleString('en-US');
-    document.getElementById('lvl-label').textContent = 'Level ' + level() + ' · Icon';
-    document.getElementById('to-next').textContent = toNext().toLocaleString('en-US');
-    document.getElementById('bar').style.width = progressPct() + '%';
-
-    const cl = document.getElementById('challenges');
-    cl.innerHTML = '';
-    challenges.forEach(c => {
-      const row = document.createElement('div');
-      row.className = 'challenge' + (c.done ? ' completed' : '');
-      row.innerHTML = svg(c.icon) +
-        '<div class="c-body"><div class="c-title">'+c.title+'</div><div class="c-pts">+'+c.pts+' points</div></div>' +
-        (c.done
-          ? '<svg class="done-mark" viewBox="0 0 24 24">'+ICONS.check+'</svg>'
-          : '<button class="do-btn" data-id="'+c.id+'">Do it</button>');
-      cl.appendChild(row);
-    });
-    cl.querySelectorAll('.do-btn').forEach(b =>
-      b.onclick = () => complete(parseInt(b.dataset.id)));
-
-    const rg = document.getElementById('rewards');
-    rg.innerHTML = '';
-    REWARDS.forEach(r => {
-      const got = redeemed.has(r.id);
-      const can = points >= r.cost && !got;
-      const card = document.createElement('div');
-      card.className = 'reward' + (can ? '' : ' locked');
-      card.innerHTML = '<svg viewBox="0 0 24 24">'+ICONS[r.icon]+'</svg>' +
-        '<div class="r-title">'+r.title+'</div>' +
-        '<div class="r-cost">'+(got ? 'Unlocked' : r.cost.toLocaleString('en-US')+' pts')+'</div>';
-      if (can) card.onclick = () => redeem(r);
-      rg.appendChild(card);
-    });
-  }
-
-  function complete(id) {
-    const c = challenges.find(x => x.id === id);
-    if (!c || c.done) return;
-    const before = level();
-    c.done = true;
-    points += c.pts;
+/* ---------- actions ---------- */
+function complete(id){
+  const c = state.challenges.find(x=>x.id===id);
+  if(!c||c.done) return;
+  const before = level(), oldPts = state.points;
+  c.done = true; state.points += c.pts; state.completedCount++;
+  animateCount(document.getElementById('points'), oldPts, state.points);
+  if(level()>before){ confetti(); toast('Level up! You reached level '+level()); }
+  else toast('+'+c.pts+' points');
+  setTimeout(()=>{
+    state.challenges = state.challenges.filter(x=>x.id!==id);
+    state.challenges.push(nextChallenge());
     render();
-    if (level() > before) toast('Level up! You reached level ' + level());
-    else toast('+' + c.pts + ' points');
-  }
-
-  function redeem(r) {
-    if (points < r.cost) return;
-    points -= r.cost;
-    redeemed.add(r.id);
-    render();
-    toast('Redeemed: ' + r.title);
-  }
-
-  function resetApp() {
-    points = 2480;
-    redeemed.clear();
-    challenges = [
-      { id:1, icon:'music',  title:'Listen to the Bizarrap x AXE playlist', pts:150, done:true },
-      { id:2, icon:'camera', title:'Share your look with the AXE filter',   pts:200, done:false },
-      { id:3, icon:'pin',    title:'Check in at the Barcelona pop-up',        pts:300, done:false }
-    ];
-    render();
-  }
-
+  }, 700);
+  renderProfileStatsOnly();
+  document.getElementById('bar').style.width = progressPct()+'%';
+  document.getElementById('to-next').textContent = toNext().toLocaleString('en-US');
+  document.getElementById('lvl-label') && (document.getElementById('lvl-label').textContent='Level '+level()+' · Icon');
+}
+function redeem(r){
+  if(state.points < r.cost || state.redeemed.includes(r.id)) return;
+  const oldPts = state.points;
+  state.points -= r.cost; state.redeemed.push(r.id);
+  state.history.unshift({title:r.title, cost:r.cost, icon:r.icon});
+  animateCount(document.getElementById('points'), oldPts, state.points);
+  toast('Redeemed: '+r.title);
   render();
+}
+
+/* ---------- views ---------- */
+function viewHome(){
+  return `
+  <div class="pad" style="padding-top:6px;">
+    <div class="profile-card">
+      <div class="profile-top">
+        <div class="avatar"><svg viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6z"/></svg></div>
+        <div><div class="profile-name">Hi, Marc</div><div class="profile-lvl" id="lvl-label">Level ${level()} · Icon</div></div>
+        <div class="to-next"><span id="to-next">${toNext().toLocaleString('en-US')}</span> to next level</div>
+      </div>
+      <div class="bar"><div class="bar-fill" id="bar" style="width:${progressPct()}%"></div></div>
+    </div>
+  </div>
+  <div class="section-label">
+    <svg viewBox="0 0 24 24"><path d="M12 2l2.4 5.4 5.6.5-4.2 3.7 1.3 5.4L12 19.8 6.9 22.4 8.2 17 4 13.3l5.6-.5z"/></svg>
+    <span class="txt">Your challenges this week</span><span class="hint">picked by AI</span>
+  </div>
+  <div class="pad" id="challengeList">${renderChallenges()}</div>
+  <div class="section-label">
+    <svg viewBox="0 0 24 24"><path d="M20 7h-3.2A3 3 0 0 0 12 3a3 3 0 0 0-4.8 4H4v4h16zM4 13v7h7v-7zm9 0v7h7v-7z"/></svg>
+    <span class="txt">Redeem your points</span>
+  </div>
+  <div class="pad" style="padding-bottom:20px;"><div class="rewards-grid">${renderRewards()}</div></div>`;
+}
+function renderChallenges(){
+  return state.challenges.map(c=>`
+    <div class="challenge ${c.done?'completed':''} ${c.fresh?'enter':''}" data-cid="${c.id}">
+      ${svgC(c.icon)}
+      <div class="c-body"><div class="c-title">${c.title}${c.social?'<span class="tag-social">SOCIAL</span>':''}</div><div class="c-pts">+${c.pts} points</div></div>
+      ${c.done
+        ? '<svg class="done-mark" viewBox="0 0 24 24">'+ICONS.check+'</svg>'
+        : '<button class="do-btn" data-do="'+c.id+'">Do it</button>'}
+    </div>`).join('');
+}
+function renderRewards(){
+  return REWARDS.map(r=>{
+    const got = state.redeemed.includes(r.id);
+    const can = state.points>=r.cost && !got;
+    return `<div class="reward ${got?'owned':(can?'':'locked')}" ${can?'data-rw="'+r.id+'"':''}>
+      <svg viewBox="0 0 24 24">${ICONS[r.icon]}</svg>
+      <div class="r-title">${r.title}</div>
+      <div class="r-cost">${got?'Unlocked':r.cost.toLocaleString('en-US')+' pts'}</div>
+    </div>`;
+  }).join('');
+}
+function viewChallenges(){
+  return `<div class="section-label" style="padding-top:6px;">
+    <svg viewBox="0 0 24 24"><path d="M12 2l2.4 5.4 5.6.5-4.2 3.7 1.3 5.4L12 19.8 6.9 22.4 8.2 17 4 13.3l5.6-.5z"/></svg>
+    <span class="txt">All your challenges</span><span class="hint">${state.vibe} vibe</span></div>
+    <div class="pad" id="challengeList" style="padding-bottom:20px;">${renderChallenges()}</div>`;
+}
+function viewRewards(){
+  return `<div class="section-label" style="padding-top:6px;">
+    <svg viewBox="0 0 24 24"><path d="M20 7h-3.2A3 3 0 0 0 12 3a3 3 0 0 0-4.8 4H4v4h16zM4 13v7h7v-7zm9 0v7h7v-7z"/></svg>
+    <span class="txt">Rewards catalogue</span></div>
+    <div class="pad"><div class="rewards-grid">${renderRewards()}</div></div>
+    <div class="section-label"><svg viewBox="0 0 24 24">${ICONS.check}</svg><span class="txt">Redeemed</span></div>
+    <div class="pad" style="padding-bottom:20px;">${state.history.length
+      ? state.history.map(h=>`<div class="hist-item"><svg viewBox="0 0 24 24">${ICONS.check}</svg><span class="h-txt">${h.title}</span><span class="h-cost">-${h.cost.toLocaleString('en-US')} pts</span></div>`).join('')
+      : '<div class="empty">Nothing redeemed yet</div>'}</div>`;
+}
+function viewProfile(){
+  return `<div class="pad" style="padding-top:6px;">
+    <div class="profile-card" style="text-align:center;">
+      <div class="avatar" style="width:60px;height:60px;margin:0 auto 12px;"><svg viewBox="0 0 24 24" style="width:30px;height:30px;"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6z" fill="#fff"/></svg></div>
+      <div class="profile-name" style="font-size:16px;">Marc Soler</div>
+      <div class="profile-lvl">Level ${level()} · Icon · ${state.vibe} vibe</div>
+    </div>
+  </div>
+  <div class="pad"><div class="stats">
+    <div class="stat"><div class="s-val" id="stat-pts">${state.points.toLocaleString('en-US')}</div><div class="s-lbl">Points</div></div>
+    <div class="stat"><div class="s-val">${state.streak}</div><div class="s-lbl">Day streak</div></div>
+    <div class="stat"><div class="s-val" id="stat-done">${state.completedCount}</div><div class="s-lbl">Completed</div></div>
+  </div></div>
+  <div class="section-label"><svg viewBox="0 0 24 24">${ICONS.check}</svg><span class="txt">Reward history</span></div>
+  <div class="pad" style="padding-bottom:20px;">${state.history.length
+    ? state.history.map(h=>`<div class="hist-item"><svg viewBox="0 0 24 24">${ICONS.check}</svg><span class="h-txt">${h.title}</span><span class="h-cost">-${h.cost.toLocaleString('en-US')} pts</span></div>`).join('')
+    : '<div class="empty">No rewards redeemed yet</div>'}</div>`;
+}
+
+function render(){
+  document.getElementById('points').textContent = state.points.toLocaleString('en-US');
+  document.getElementById('streak').textContent = state.streak;
+  const scroll = document.getElementById('scroll');
+  if(state.tab==='home') scroll.innerHTML = viewHome();
+  else if(state.tab==='challenges') scroll.innerHTML = viewChallenges();
+  else if(state.tab==='rewards') scroll.innerHTML = viewRewards();
+  else scroll.innerHTML = viewProfile();
+  bind();
+  scroll.querySelectorAll('.challenge.enter').forEach(el=>{
+    requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.remove('enter')));
+  });
+}
+function renderProfileStatsOnly(){
+  const sp=document.getElementById('stat-pts'); if(sp) sp.textContent=state.points.toLocaleString('en-US');
+  const sd=document.getElementById('stat-done'); if(sd) sd.textContent=state.completedCount;
+}
+function bind(){
+  document.querySelectorAll('[data-do]').forEach(b=> b.onclick=()=>complete(parseInt(b.dataset.do)));
+  document.querySelectorAll('[data-rw]').forEach(c=> c.onclick=()=>redeem(REWARDS.find(r=>r.id===c.dataset.rw)));
+}
+
+/* nav */
+document.getElementById('nav').querySelectorAll('button').forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll('#nav button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.tab = btn.dataset.tab;
+    render();
+    document.getElementById('scroll').scrollTop=0;
+  };
+});
+
+/* onboarding bind */
+document.querySelectorAll('.ob-opt').forEach(o=> o.onclick=()=>pickVibe(o.dataset.vibe));
 </script>
 </body>
 </html>
